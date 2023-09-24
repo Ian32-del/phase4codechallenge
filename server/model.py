@@ -1,9 +1,5 @@
-from flask import Flask
-from flask_sqlachemy import SQLAlchemy
+from app import db
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pizza restaurant.db'
-db = SQLAlchemy(app)
 
 restaurant_pizza = db.Table(
     'restaurant_pizza',
@@ -11,9 +7,12 @@ restaurant_pizza = db.Table(
     db.Column('pizza_id', db.Integer, db.ForeignKey('pizza.id'))
 )
 
-
 class Restaurant(db.Model):
-    id = db.Column(db.Integer,primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
-    pizzas = db.relationship('Pizza', secondary=restaurant_pizza, back_populates='restaurant')
+    pizzas = db.relationship('Pizza', secondary=restaurant_pizza, back_populates='restaurants')
 
+class Pizza(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    restaurants = db.relationship('Restaurant', secondary=restaurant_pizza, back_populates='pizzas')
