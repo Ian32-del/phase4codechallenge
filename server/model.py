@@ -1,23 +1,32 @@
-from flask_SQLAlchemy import SQLAlchemy
-from sqlalchemy import CheckConstraint
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import CheckConstraint, UniqueConstraint
 
-db = SQLAlchemy
+db = SQLAlchemy()
 
-
-restaurant_pizza = db.Table(
-    'restaurant_pizza',
-    db.Column('restaurant_id', db.Integer, db.ForeignKey('restaurant.id')),
-    db.Column('pizza_id', db.Integer, db.ForeignKey('pizza.id')),
-    db.Column('price', db.Float , nullable=False),
-    CheckConstraint('price >= 1 AND price <= 30', name='check_price_range')
-)
 
 class Restaurant(db.Model):
+    __tablename__ = 'restaurants'  # Custom table name
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    pizzas = db.relationship('Pizza', secondary=restaurant_pizza, back_populates='restaurants')
+    name = db.Column(db.String(100))
+    __table_args__ = (
+        CheckConstraint("LENGTH(name) <= 50", name="check_name_length"),
+        UniqueConstraint('name', name='unique_restaurant_name')
+    )
+    pizzas = db.relationship('Pizza', secondary='restaurant_pizza', back_populates='restaurants')
 
 class Pizza(db.Model):
+    __tablename__ = 'pizzas'  # Custom table name
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100) , nullable=False)
-    restaurants = db.relationship('Restaurant', secondary=restaurant_pizza, back_populates='pizzas')
+    name = db.Column(db.String(100))
+    restaurants = db.relationship('Restaurant', secondary='restaurant_pizza', back_populates='pizzas')
+
+class RestaurantPizza(db.Model):
+    __tablename__ = 'restaurant_pizza'  # Custom table name
+    id = db.Column(db.Integer, primary_key=True)
+    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
+    pizza_id = db.Column(db.Integer, db.ForeignKey('pizzas.id'))
+    price = db.Column(db.Float)
+
+    __table_args__ = (
+        CheckConstraint("price >= 1 AND price <= 30 " ,name="check_price_orange"),
+    )
